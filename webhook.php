@@ -55,4 +55,8 @@ function logEvent($message) {
 
 // Respond with success status
 http_response_code(200);
+<<<<<<< HEAD
 ?>
+=======
+?>
+>>>>>>> 5933c98 (update)
