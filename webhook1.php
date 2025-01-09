@@ -1,5 +1,13 @@
 <?php
 // Define your secret token here for GitHub webhook security
+// Function to log events
+function logEvent($message) {
+    global $logFile;
+    $timestamp = date('Y-m-d H:i:s');
+    $logMessage = "[$timestamp] $message\n";
+    file_put_contents($logFile, $logMessage, FILE_APPEND);
+}
+
 $secret = '121205minh';
 $logFile = '/var/www/html/log/webhook.log'; // Log file path (ensure write permissions)
 
@@ -29,6 +37,7 @@ switch ($event) {
 }
 
 // Handle push event (example function)
+
 function handlePushEvent($payload) {
     logEvent("Handling push event");
     // You can perform additional logic here if needed
@@ -43,14 +52,6 @@ function handlePullRequestEvent($payload) {
     // Example: Notify team or perform other actions for pull requests
     logEvent("Handling pull request event");
     echo "Pull request event received\n";
-}
-
-// Function to log events
-function logEvent($message) {
-    global $logFile;
-    $timestamp = date('Y-m-d H:i:s');
-    $logMessage = "[$timestamp] $message\n";
-    file_put_contents($logFile, $logMessage, FILE_APPEND);
 }
 
 // Respond with success status
