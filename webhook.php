@@ -1,33 +1,58 @@
 <?php
-// Webhook secret (must match the secret set in GitHub webhook settings)
+// Define your secret token here for GitHub webhook security
 $secret = '121205minh';
+$logFile = '/var/www/html/log/webhook.log'; // Log file path (ensure write permissions)
 
-// Get the payload and verify the signature
+// Validate the webhook request
 $payload = file_get_contents('php://input');
-$signature = 'sha1=' . hash_hmac('sha1', $payload, $secret);
+$signature = $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? '';
 
-if (hash_equals($signature, $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
-    // Decode the payload
-    $data = json_decode($payload, true);
+// Process webhook event based on the event type
+$event = $_SERVER['HTTP_X_GITHUB_EVENT'] ?? '';
 
-    // Check if it's a push event
-    if ($data['ref'] === 'refs/heads/main') {
-        // Pull the latest changes
-        $output = shell_exec('cd /var/www/html/myphpapp && git pull 2>&1');
-        file_put_contents('webhook.log', date('Y-m-d H:i:s') . " - Pull output:\n$output\n\n", FILE_APPEND);
+// Log incoming webhook
+logEvent("Received event: $event");
+logEvent("Payload: " . substr($payload, 0, 500)); // Log only the first 500 characters for brevity
 
-        // Optionally, clear any caches or perform other tasks
-
-        // Send a success response to GitHub
-        http_response_code(200);
-        echo "Webhook received and processed successfully.";
-    } else {
-        http_response_code(200);
-        echo "Webhook received but no action was taken.";
-    }
-} else {
-    // Invalid signature
-    http_response_code(403);
-    echo "Forbidden - Invalid signature.";
+switch ($event) {
+    case 'push':
+        handlePushEvent($payload);
+        break;
+    case 'pull_request':
+        handlePullRequestEvent($payload);
+        break;
+    // Add more cases for other GitHub events as needed
+    default:
+	logEvent("Unsupported event: $event");
+        http_response_code(400); // Bad Request
+        die('Unsupported event');
 }
+
+// Handle push event (example function)
+function handlePushEvent($payload) {
+    logEvent("Handling push event");
+    // You can perform additional logic here if needed
+    // Example: Trigger deployment by calling deploy.php
+    $deployOutput = shell_exec('php /var/www/html/myphpapp/deploy.php
+    logEvent("Deployment output:\n$deployOutput");
+    echo "<pre>Deployment output:\n$deployOutput</pre>";
+}
+
+// Handle pull request event (example function)
+function handlePullRequestEvent($payload) {
+    // Example: Notify team or perform other actions for pull requests
+    logEvent("Handling pull request event");
+    echo "Pull request event received\n";
+}
+
+// Function to log events
+function logEvent($message) {
+    global $logFile;
+    $timestamp = date('Y-m-d H:i:s');
+    $logMessage = "[$timestamp] $message\n";
+    file_put_contents($logFile, $logMessage, FILE_APPEND);
+}
+
+// Respond with success status
+http_response_code(200);
 ?>
