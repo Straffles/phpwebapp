@@ -33,7 +33,7 @@ function handlePushEvent($payload) {
     logEvent("Handling push event");
     // You can perform additional logic here if needed
     // Example: Trigger deployment by calling deploy.php
-    $deployOutput = shell_exec('php /var/www/html/myphpapp/deploy.php
+    $deployOutput = shell_exec('php /var/www/html/myphpapp/deploy.php')
     logEvent("Deployment output:\n$deployOutput");
     echo "<pre>Deployment output:\n$deployOutput</pre>";
 }
